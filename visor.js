@@ -1,67 +1,24 @@
-const fileId = "11UygAAguuZH0e4VibxfsbAMyFOdDYH-B";
-const url = `https://drive.google.com/uc?export=download&id=${fileId}`;
-
-fetch(url)
-  .then(response => response.text())
-  .then(chordProText => {
-    const parser = new ChordSheetJS.ChordProParser();
-    const song = parser.parse(chordProText);
-    const formatter = new ChordSheetJS.HtmlDivFormatter();
-    const songHtml = formatter.format(song);
-
+document.addEventListener("DOMContentLoaded", () => {
     const viewer = document.getElementById("chordProViewer");
-    viewer.innerHTML = "";
-    viewer.appendChild(songHtml);
-  })
-  .catch(error => console.error("Error cargando el archivo ChordPro:", error));
+    const fileId = viewer.getAttribute("data-fileid"); // Obtener el ID del atributo HTML
 
-// Alternar notación (Español/Inglés)
-const notasEsp = { "C": "Do", "D": "Re", "E": "Mi", "F": "Fa", "G": "Sol", "A": "La", "B": "Si" };
-const notasIng = { "Do": "C", "Re": "D", "Mi": "E", "Fa": "F", "Sol": "G", "La": "A", "Si": "B" };
+    if (!fileId) {
+        console.error("No se encontró el ID del archivo en el HTML.");
+        return;
+    }
 
-document.getElementById("langSelect").addEventListener("change", (e) => {
-  const idioma = e.target.value;
-  document.querySelectorAll(".chord").forEach(span => {
-    let txt = span.textContent;
-    span.textContent = idioma === "es" ? (notasEsp[txt] || txt) : (notasIng[txt] || txt);
-  });
-});
+    const url = `https://drive.google.com/uc?export=download&id=${fileId}`;
 
-// Alternar sostenidos/bemoles
-document.getElementById("accSelect").addEventListener("change", (e) => {
-  const preferFlat = e.target.value === "flat";
-  document.querySelectorAll(".chord").forEach(span => {
-    let acorde = ChordSheetJS.Chord.parse(span.textContent);
-    acorde = acorde.useModifier(preferFlat ? 'b' : '#');
-    span.textContent = acorde.toString();
-  });
-});
-
-// Transposición de tono
-function transponer(semitonos) {
-  document.querySelectorAll(".chord").forEach(span => {
-    let acorde = ChordSheetJS.Chord.parse(span.textContent);
-    acorde = acorde.transpose(semitonos);
-    span.textContent = acorde.toString();
-  });
-}
-
-document.getElementById("btnTransposeUp").addEventListener("click", () => transponer(1));
-document.getElementById("btnTransposeDown").addEventListener("click", () => transponer(-1));
-
-// Ajustar tamaño de fuente
-let fontSize = 1;
-document.getElementById("btnFontInc").addEventListener("click", () => {
-  fontSize *= 1.1;
-  document.getElementById("chordProViewer").style.fontSize = fontSize + "em";
-});
-document.getElementById("btnFontDec").addEventListener("click", () => {
-  fontSize *= 0.9;
-  document.getElementById("chordProViewer").style.fontSize = fontSize + "em";
-});
-
-// Descargar PDF
-document.getElementById("btnDownloadPdf").addEventListener("click", () => {
-  const element = document.getElementById("chordProViewer");
-  html2pdf().from(element).save("cancion.pdf");
+    fetch(url)
+        .then(response => response.text())
+        .then(chordProText => {
+            const parser = new ChordSheetJS.ChordProParser();
+            const song = parser.parse(chordProText);
+            const formatter = new ChordSheetJS.HtmlDivFormatter();
+            const songHtml = formatter.format(song);
+            
+            viewer.innerHTML = "";
+            viewer.appendChild(songHtml);
+        })
+        .catch(error => console.error("Error cargando el archivo ChordPro:", error));
 });
